@@ -1,2 +1,0 @@
-# Clima_Mc
-Proyecto

@@ -1,0 +1,140 @@
+---
+title: "CodigoFuenteProyecto"
+author: "Salvador P"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+
+```{r}
+library(markovchain)
+```
+
+##Se tomaron los datos del estado de clima del mes de Octubre en Saltillo, Coahuila, siendo los datos los siguientes.
+
+```{r}
+# Estados:
+## 0: soleado
+## 1: nublado
+## 2: lluvioso
+## 3: tormenta
+datos = c(2, 2, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 2, 2, 0, 2, 2, 2, 3, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 3, 1, 0, 0, 0, 1, 1)
+```
+  
+##Después de la recopilación de datos hacemos un conteo de los posibles cambios de estados partiendo de un dia soleado.
+```{r}
+## Se contaran las veces que siga soleado al dia siguiente, las veces que de soleado cambió a nublado, de soleado a lluvioso y de soleado a tormenta
+conteo0 = c(0, 0, 0, 0)
+for(i in c(2:49)){
+  if(datos[i-1]==0){
+    if(datos[i]==0) conteo0[1]=conteo0[1]+1
+    if(datos[i]==1) conteo0[2]=conteo0[2]+1
+    if(datos[i]==2) conteo0[3]=conteo0[3]+1
+    if(datos[i]==3) conteo0[4]=conteo0[4]+1
+  }
+}
+```
+  
+Se hace el mismo conteo para los demas cambios de estados.
+```{r}
+conteo1 = c(0, 0, 0, 0)
+for(i in c(2:49)){
+  if(datos[i-1]==1){
+    if(datos[i]==0) conteo1[1]=conteo1[1]+1
+    if(datos[i]==1) conteo1[2]=conteo1[2]+1
+    if(datos[i]==2) conteo1[3]=conteo1[3]+1
+    if(datos[i]==3) conteo1[4]=conteo1[4]+1
+  }
+}
+
+conteo2 = c(0, 0, 0, 0)
+for(i in c(2:49)){
+  if(datos[i-1]==2){
+    if(datos[i]==0) conteo2[1]=conteo2[1]+1
+    if(datos[i]==1) conteo2[2]=conteo2[2]+1
+    if(datos[i]==2) conteo2[3]=conteo2[3]+1
+    if(datos[i]==3) conteo2[4]=conteo2[4]+1
+  }
+}
+
+conteo3 = c(0, 0, 0, 0)
+for(i in c(2:49)){
+  if(datos[i-1]==3){
+    if(datos[i]==0) conteo3[1]=conteo3[1]+1
+    if(datos[i]==1) conteo3[2]=conteo3[2]+1
+    if(datos[i]==2) conteo3[3]=conteo3[3]+1
+    if(datos[i]==3) conteo3[4]=conteo3[4]+1
+  }
+}
+```
+
+
+```{r}
+n = sum(conteo0)
+conteo0[1]=conteo0[1]/n
+conteo0[2]=conteo0[2]/n
+conteo0[3]=conteo0[3]/n
+conteo0[4]=conteo0[4]/n
+
+n = sum(conteo1)
+conteo1[1]=conteo1[1]/n
+conteo1[2]=conteo1[2]/n
+conteo1[3]=conteo1[3]/n
+conteo1[4]=conteo1[4]/n
+
+n = sum(conteo2)
+conteo2[1]=conteo2[1]/n
+conteo2[2]=conteo2[2]/n
+conteo2[3]=conteo2[3]/n
+conteo2[4]=conteo2[4]/n
+
+n = sum(conteo3)
+conteo3[1]=conteo3[1]/n
+conteo3[2]=conteo3[2]/n
+conteo3[3]=conteo3[3]/n
+conteo3[4]=conteo3[4]/n
+```
+  
+##Sacamos los porcentajes dada la siguiente formula: p(x) = conteos/n
+```{r}
+statesNames = c("Soleado", "Nublado", "Lluvioso", "Tormenta")
+mc_p = new("markovchain", transitionMatrix = matrix(c(conteo0, conteo1, conteo2, conteo3),byrow=TRUE, nrow=4, dimnames=list(statesNames, statesNames)))
+
+print(mc_p)
+```
+  
+# Hemos creado una función para aleatoriamente con las probabilidades cargadas, se estima el clima del siguiente día.
+```{r}
+estimarClima <- function(climaAnterior){
+  aleatorio = runif(1)
+  climaAnterior = climaAnterior+1
+  if(aleatorio<sum(mc_p[climaAnterior][1:1])){
+    return(0)
+  }
+  else if(aleatorio<sum(mc_p[climaAnterior][1:2])){
+    return(1)
+  }
+  else if(aleatorio<sum(mc_p[climaAnterior][1:3])){
+    return(2)
+  }
+  else if(aleatorio<sum(mc_p[climaAnterior][1:4])){
+    return(3)
+  }
+}
+```
+  
+##Suponiendo que hoy ha sido un dia nublado, calculamos aleatoriamente, con las probabilidades de la cadena de markov, (Este no siempre será el mismo).
+```{r}
+##Recuerda que:
+
+## 0: soleado
+## 1: nublado
+## 2: lluvioso
+## 3: tormenta
+print(estimarClima(1))
+```
